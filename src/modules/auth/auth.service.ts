@@ -8,15 +8,21 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { LoginResponse, Payload } from './auth.interfaces';
-import { LoginDto } from './dto/login.dto';
+import { LoginRequestDto } from './dto/login.dto';
 import { NodemailerService } from '../../shared/nodemailer/nodemailer.service';
-import { customerEmailConfirmationTemplate } from '../../shared/nodemailer/template/confirm-email';
+import {
+  customerEmailConfirmationTemplate,
+  driverEmailConfirmationTemplate,
+} from '../../shared/nodemailer/template/confirm-email';
 import { TwilioService } from '../../shared/twilio/twilio.service';
-import { SignupCustomerDto } from './dto/signup.dto';
+import { DriverSignupDto, CustomerSignupDto } from './dto/signup.dto';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { CloudinaryService } from 'src/shared/cloudinary/cloudinary.service';
 import { Customer, Driver } from '@prisma/client';
-import { customerMobileConfirmationTemplate } from 'src/shared/twilio/template/confirm-mobile';
+import {
+  customerMobileConfirmationTemplate,
+  driverMobileConfirmationTemplate,
+} from 'src/shared/twilio/template/confirm-mobile';
 
 @Injectable()
 export class AuthService {
@@ -62,7 +68,7 @@ export class AuthService {
   }
 
   // Start of Customer auth services
-  async customerSignup(body: SignupCustomerDto): Promise<string> {
+  async customerSignup(body: CustomerSignupDto): Promise<string> {
     try {
       // checking if email in use
       const isEmailInUse = await this.getUserByEmail(body.email);
@@ -111,11 +117,11 @@ export class AuthService {
       }
       return 'You signed up successfully, please verify your email and mobile number to be able to login';
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw error;
     }
   }
 
-  async customerLogin(body: LoginDto): Promise<LoginResponse> {
+  async customerLogin(body: LoginRequestDto): Promise<LoginResponse> {
     try {
       const customer = await this.prismaService.customer.findUnique({
         where: { email: body?.email },
@@ -138,11 +144,9 @@ export class AuthService {
         );
       }
       const accessToken = this.generateAccessToken({ userId: customer?.id });
-      return { user: customer, access_token: accessToken };
+      return { ...customer, access_token: accessToken };
     } catch (error) {
-      throw new InternalServerErrorException(
-        'Error while signing you in, please try again later!',
-      );
+      throw error;
     }
   }
 
@@ -167,10 +171,7 @@ export class AuthService {
       await this.prismaService.$transaction([updateCustomer, deleteToken]);
       return 'Email address confirmed successfully!';
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'Error while verifying your email address, please try again later!',
-      );
+      throw error;
     }
   }
 
@@ -197,11 +198,80 @@ export class AuthService {
       await this.prismaService.$transaction([updateCustomer, deleteToken]);
       return 'Mobile number confirmed successfully!';
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'Error while verifying your mobile number, please try again later!',
-      );
+      throw error;
     }
   }
   // End of Customer auth services
+
+  async driverSignup(
+    body: DriverSignupDto,
+    nationalId: Express.Multer.File,
+    driveLicense: Express.Multer.File,
+  ): Promise<string> {
+    try {
+      // checking if email in use
+      const isEmailInUse = await this.getUserByEmail(body.email);
+      if (isEmailInUse) {
+        throw new BadRequestException('Email address already in use!');
+      }
+      // checking if mobile number in use
+      const isMobileInUse = await this.getUserByMobileNumber(body.mobile);
+      if (isMobileInUse) {
+        throw new BadRequestException('Mobile number already in use!');
+      }
+      // generate mobile, and email confirmation tokens
+      const mobileConfirmationToken = this.generateVerificationToken();
+      const emailConfirmationToken = this.generateVerificationToken();
+      // hashing password pre save
+      body.password = await bcrypt.hash(body.password, 12);
+      const uploadDriveLicense =
+        await this.cloudinaryService.uploadImage(driveLicense);
+      const uploadNationalId =
+        await this.cloudinaryService.uploadImage(nationalId);
+      const driver = await this.prismaService.driver.create({
+        data: {
+          firstName: body.firstName,
+          lastName: body.lastName,
+          email: body.email,
+          password: body.password,
+          mobile: body.mobile,
+          driveLicense: uploadDriveLicense.url as string,
+          NID: uploadNationalId.url as string,
+        },
+      });
+      const vehicle = this.prismaService.vehicle.create({
+        data: {
+          driverId: driver?.id,
+          model: body.vehicleModel,
+          year: Number(body.vehicleYear),
+          plateNum: body.vehiclePlateNum,
+          color: body.vehicleColor,
+        },
+      });
+      const saveEmailToken = this.prismaService.emailVerificationTokens.create({
+        data: { token: emailConfirmationToken, userEmail: driver?.email },
+      });
+      const saveMobileToken =
+        this.prismaService.mobileVerificationTokens.create({
+          data: { userEmail: driver?.email, token: mobileConfirmationToken },
+        });
+      await this.nodemailerService.sendEmail(
+        driver?.email,
+        'Email Verification',
+        driverEmailConfirmationTemplate(emailConfirmationToken),
+      );
+      await this.twilioService.sendSms(
+        driverMobileConfirmationTemplate(mobileConfirmationToken),
+        driver?.mobile,
+      );
+      await this.prismaService.$transaction([
+        vehicle,
+        saveEmailToken,
+        saveMobileToken,
+      ]);
+      return 'Account created successfully please verify your email address and your mobile number to be approved';
+    } catch (error) {
+      throw error;
+    }
+  }
 }

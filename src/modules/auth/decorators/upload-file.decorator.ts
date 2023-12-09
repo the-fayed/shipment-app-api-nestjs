@@ -1,6 +1,11 @@
 import { UseInterceptors } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
-export const UploadFile = (fieldName: string) => {
-  return UseInterceptors(FileInterceptor(fieldName));
+export const UploadDriverFiles = () => {
+  return UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'nationalId', maxCount: 1 },
+      { name: 'driveLicense', maxCount: 1 },
+    ]),
+  );
 };

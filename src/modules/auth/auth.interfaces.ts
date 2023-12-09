@@ -8,12 +8,11 @@ export interface SerializedUser {
 export type AccessToken = string;
 
 export interface SignupResponse {
-  user: SerializedUser;
-  access_token: AccessToken;
+  status: string;
+  message: string;
 }
 
-export interface LoginResponse {
-  user: SerializedUser;
+export interface LoginResponse extends SerializedUser {
   access_token: AccessToken;
 }
 

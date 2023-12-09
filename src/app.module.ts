@@ -1,6 +1,6 @@
 import { Module, ValidationPipe } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { APP_PIPE } from '@nestjs/core';
 import { NodemailerModule } from './shared/nodemailer/nodemailer.module';
 import { CloudinaryModule } from './shared/cloudinary/cloudinary.module';
@@ -9,7 +9,6 @@ import { PrismaModule } from './shared/prisma/prisma.module';
 import { multerConfig } from './common/config/multer.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { TwilioModule } from './shared/twilio/twilio.module';
-import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -19,16 +18,6 @@ import { JwtModule } from '@nestjs/jwt';
     MulterModule.registerAsync({
       useFactory: () => {
         return multerConfig;
-      },
-    }),
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        return {
-          global: true,
-          secret: configService.get('JWT_SECRET'),
-          signOptions: { expiresIn: configService.get('JWT_EXPIRATION') },
-        };
       },
     }),
     AuthModule,

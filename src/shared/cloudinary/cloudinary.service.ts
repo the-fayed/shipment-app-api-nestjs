@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   UploadApiErrorResponse,
-  UploadApiOptions,
   UploadApiResponse,
   v2 as cloudinary,
 } from 'cloudinary';
+
+import * as streamifier from 'streamifier';
 
 export type CloudinaryResponse = UploadApiErrorResponse | UploadApiResponse;
 
@@ -19,10 +20,15 @@ export class CloudinaryService {
     });
   }
 
-  async uploadImage(
-    file: Express.Multer.File,
-    opts: UploadApiOptions,
-  ): Promise<CloudinaryResponse> {
-    return cloudinary.uploader.upload(file.path, opts);
+  async uploadImage(file: Express.Multer.File): Promise<CloudinaryResponse> {
+    return new Promise<CloudinaryResponse>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        },
+      );
+      streamifier.createReadStream(file.buffer).pipe(uploadStream);
+    });
   }
 }

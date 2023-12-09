@@ -65,7 +65,7 @@ model Address {
 model Vehicle {
   id                         Int       @id  @default(autoincrement())
   model                      String
-  year                       String
+  year                       Int
   color                      String
   plateNum                   String     @unique
   driverId                   Int        @unique

@@ -5,12 +5,23 @@ import {
   InternalServerErrorException,
   Param,
   Post,
+  UploadedFiles,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginResponse } from './auth.interfaces';
+import {
+  LoginResponse,
+  SignupResponse,
+  VerifyEmailResponse,
+  VerifyMobileResponse,
+} from './auth.interfaces';
 import { Serialize } from '../../common/decorators/serialize.decorator';
-import { LoginDto } from './dto/login.dto';
-import { SignupCustomerDto, SignupDto } from './dto/signup.dto';
+import { LoginRequestDto, LoginResponseDto } from './dto/login.dto';
+import {
+  CustomerSignupDto,
+  DriverSignupDto,
+  SignupDto,
+} from './dto/signup.dto';
+import { UploadDriverFiles } from './decorators/upload-file.decorator';
 
 @Controller('v1/auth')
 export class AuthController {
@@ -18,7 +29,7 @@ export class AuthController {
 
   @Post('/customer/signup')
   @Serialize(SignupDto)
-  async customerSignup(@Body() body: SignupCustomerDto): Promise<SignupDto> {
+  async customerSignup(@Body() body: CustomerSignupDto): Promise<SignupDto> {
     const result = await this.authService.customerSignup(body);
     if (!result) {
       throw new InternalServerErrorException(
@@ -29,25 +40,41 @@ export class AuthController {
   }
 
   @Post('/customer/login')
-  async customerLogin(@Body() code: LoginDto): Promise<LoginResponse> {
+  @Serialize(LoginResponseDto)
+  async customerLogin(@Body() code: LoginRequestDto): Promise<LoginResponse> {
     const result = await this.authService.customerLogin(code);
-    if (!result.user || !result.access_token) {
-      throw new InternalServerErrorException(
-        'Error while logging you in, please try again later!',
-      );
-    }
     return result;
   }
 
   @Get('/verify/customer-email/:token')
-  async verifyEmail(@Param('token') token: string): Promise<SignupDto> {
+  async verifyEmail(
+    @Param('token') token: string,
+  ): Promise<VerifyEmailResponse> {
     const result = await this.authService.verifyCustomerEmail(token);
-    return { message: result };
+    return { status: 'success', message: result };
   }
 
   @Get('/verify/customer-mobile/:token')
-  async verifyMobile(@Param('token') token: string): Promise<SignupDto> {
+  async verifyMobile(
+    @Param('token') token: string,
+  ): Promise<VerifyMobileResponse> {
     const result = await this.authService.verifyCustomerMobile(token);
-    return { message: result };
+    return { status: 'success', message: result };
+  }
+
+  @Post('/driver/signup')
+  @UploadDriverFiles()
+  async driverSignup(
+    @Body() dto: DriverSignupDto,
+    @UploadedFiles() files: Record<string, Express.Multer.File[]>,
+  ): Promise<SignupResponse> {
+    const nationalId = files['nationalId'][0];
+    const driveLicense = files['driveLicense'][0];
+    const result = await this.authService.driverSignup(
+      dto,
+      nationalId,
+      driveLicense,
+    );
+    return { status: 'success', message: result };
   }
 }
