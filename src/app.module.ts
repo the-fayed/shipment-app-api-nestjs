@@ -1,16 +1,15 @@
 import { Module, ValidationPipe } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_PIPE } from '@nestjs/core';
-import { NodemailerModule } from './modules/nodemailer/nodemailer.module';
-import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
-import { PrismaService } from './modules/prisma/prisma.service';
-import { PrismaModule } from './modules/prisma/prisma.module';
+import { NodemailerModule } from './shared/nodemailer/nodemailer.module';
+import { CloudinaryModule } from './shared/cloudinary/cloudinary.module';
+import { PrismaService } from './shared/prisma/prisma.service';
+import { PrismaModule } from './shared/prisma/prisma.module';
 import { multerConfig } from './common/config/multer.config';
-import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { CacheModule } from '@nestjs/cache-manager';
-import { TwilioModule } from './modules/twilio/twilio.module';
+import { TwilioModule } from './shared/twilio/twilio.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -22,8 +21,16 @@ import { TwilioModule } from './modules/twilio/twilio.module';
         return multerConfig;
       },
     }),
-    CacheModule.register({ isGlobal: true }),
-    UserModule,
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          global: true,
+          secret: configService.get('JWT_SECRET'),
+          signOptions: { expiresIn: configService.get('JWT_EXPIRATION') },
+        };
+      },
+    }),
     AuthModule,
     PrismaModule,
     NodemailerModule,

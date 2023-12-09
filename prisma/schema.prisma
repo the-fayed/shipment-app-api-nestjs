@@ -73,21 +73,18 @@ model Vehicle {
 }
 
 model EmailVerificationTokens {
-  token                      String
-  userId                     Int
-  @@id([token, userId])
+  token                      String     @unique
+  userEmail                  String
 }
 
-model MobileVerificationToken {
-  token                     String
-  userId                    Int
-  @@id([token, userId])
+model MobileVerificationTokens {
+  token                     String     @unique
+  userEmail                 String
 }
 
-model ResetPasswordToken {
-  token                    String
-  userId                   Int
-  @@id([token, userId])
+model ResetPasswordTokens {
+  token                    String      @unique
+  userEmail                String
 }
 
 enum Role {

@@ -7,11 +7,10 @@ import {
   Post,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginResponse } from './types/types';
+import { LoginResponse } from './auth.interfaces';
 import { Serialize } from '../../common/decorators/serialize.decorator';
-import { CreateCustomerDto } from '../user/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
-import { SignupDto } from './dto/signup.dto';
+import { SignupCustomerDto, SignupDto } from './dto/signup.dto';
 
 @Controller('v1/auth')
 export class AuthController {
@@ -19,7 +18,7 @@ export class AuthController {
 
   @Post('/customer/signup')
   @Serialize(SignupDto)
-  async customerSignup(@Body() body: CreateCustomerDto): Promise<SignupDto> {
+  async customerSignup(@Body() body: SignupCustomerDto): Promise<SignupDto> {
     const result = await this.authService.customerSignup(body);
     if (!result) {
       throw new InternalServerErrorException(

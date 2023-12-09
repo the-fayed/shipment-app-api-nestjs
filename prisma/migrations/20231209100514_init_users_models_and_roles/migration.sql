@@ -78,6 +78,30 @@ CREATE TABLE `Vehicle` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `EmailVerificationTokens` (
+    `token` VARCHAR(191) NOT NULL,
+    `userEmail` VARCHAR(191) NOT NULL,
+
+    UNIQUE INDEX `EmailVerificationTokens_token_key`(`token`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `MobileVerificationTokens` (
+    `token` VARCHAR(191) NOT NULL,
+    `userEmail` VARCHAR(191) NOT NULL,
+
+    UNIQUE INDEX `MobileVerificationTokens_token_key`(`token`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `ResetPasswordTokens` (
+    `token` VARCHAR(191) NOT NULL,
+    `userEmail` VARCHAR(191) NOT NULL,
+
+    UNIQUE INDEX `ResetPasswordTokens_token_key`(`token`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `Address` ADD CONSTRAINT `Address_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Customer`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 

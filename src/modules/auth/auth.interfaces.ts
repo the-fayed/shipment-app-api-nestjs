@@ -16,3 +16,11 @@ export interface LoginResponse {
   user: SerializedUser;
   access_token: AccessToken;
 }
+
+export interface VerifyEmailResponse extends SignupResponse {}
+
+export interface VerifyMobileResponse extends SignupResponse {}
+
+export interface Payload {
+  userId: number;
+}
