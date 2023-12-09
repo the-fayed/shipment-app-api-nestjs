@@ -10,6 +10,7 @@ import { multerConfig } from './common/config/multer.config';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { TwilioModule } from './modules/twilio/twilio.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     PrismaModule,
     NodemailerModule,
     CloudinaryModule,
+    TwilioModule,
   ],
   providers: [
     PrismaService,

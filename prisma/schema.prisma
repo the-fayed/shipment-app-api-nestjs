@@ -72,6 +72,24 @@ model Vehicle {
   driver                     Driver     @relation(fields: [driverId], references: [id])
 }
 
+model EmailVerificationTokens {
+  token                      String
+  userId                     Int
+  @@id([token, userId])
+}
+
+model MobileVerificationToken {
+  token                     String
+  userId                    Int
+  @@id([token, userId])
+}
+
+model ResetPasswordToken {
+  token                    String
+  userId                   Int
+  @@id([token, userId])
+}
+
 enum Role {
   Admin
   Customer

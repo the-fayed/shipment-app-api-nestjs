@@ -30,8 +30,8 @@ export class AuthController {
   }
 
   @Post('/customer/login')
-  async customerLogin(@Body() body: LoginDto): Promise<LoginResponse> {
-    const result = await this.authService.customerLogin(body);
+  async customerLogin(@Body() code: LoginDto): Promise<LoginResponse> {
+    const result = await this.authService.customerLogin(code);
     if (!result.user || !result.access_token) {
       throw new InternalServerErrorException(
         'Error while logging you in, please try again later!',
@@ -41,8 +41,14 @@ export class AuthController {
   }
 
   @Get('/verify/customer-email/:token')
-  async verifyEmail(@Param('token') token: string): Promise<string> {
+  async verifyEmail(@Param('token') token: string): Promise<SignupDto> {
     const result = await this.authService.verifyCustomerEmail(token);
-    return result;
+    return { message: result };
+  }
+
+  @Get('/verify/customer-mobile/:token')
+  async verifyMobile(@Param('token') token: string): Promise<SignupDto> {
+    const result = await this.authService.verifyCustomerMobile(token);
+    return { message: result };
   }
 }

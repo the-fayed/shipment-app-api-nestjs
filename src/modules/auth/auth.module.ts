@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserModule } from '../user/user.module';
 import { NodemailerModule } from '../nodemailer/nodemailer.module';
+import { TwilioModule } from '../twilio/twilio.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { NodemailerModule } from '../nodemailer/nodemailer.module';
     }),
     UserModule,
     NodemailerModule,
+    TwilioModule,
   ],
   providers: [AuthService],
   controllers: [AuthController],
