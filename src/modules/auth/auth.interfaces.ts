@@ -7,6 +7,8 @@ export interface SerializedUser {
 
 export type AccessToken = string;
 
+export type Function = (param: string) => string;
+
 export interface SignupResponse {
   status: string;
   message: string;

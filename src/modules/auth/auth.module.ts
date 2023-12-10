@@ -1,16 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { NodemailerModule } from '../../shared/nodemailer/nodemailer.module';
-import { TwilioModule } from '../../shared/twilio/twilio.module';
-import { PrismaModule } from 'src/shared/prisma/prisma.module';
-import { CloudinaryModule } from 'src/shared/cloudinary/cloudinary.module';
-import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthController } from './auth.controller';
+import { UserModule } from '../user/user.module';
+import { AuthService } from './auth.service';
 
 @Module({
   imports: [
-    PrismaModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
@@ -21,9 +17,7 @@ import { ConfigService } from '@nestjs/config';
         };
       },
     }),
-    CloudinaryModule,
-    NodemailerModule,
-    TwilioModule,
+    UserModule,
   ],
   providers: [AuthService],
   controllers: [AuthController],

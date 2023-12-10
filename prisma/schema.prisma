@@ -36,7 +36,7 @@ model Driver {
   driveLicense                String
   vehicle                     Vehicle?
   emailConfirmed              Boolean   @default(false)
-  mobileComfirmed             Boolean   @default(false)
+  mobileConfirmed             Boolean   @default(false)
   role                        Role      @default(Driver)
   approved                    Boolean   @default(false)
   passwordChangedAt           DateTime?

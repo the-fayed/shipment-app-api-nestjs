@@ -9,6 +9,7 @@ import { PrismaModule } from './shared/prisma/prisma.module';
 import { multerConfig } from './common/config/multer.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { TwilioModule } from './shared/twilio/twilio.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { TwilioModule } from './shared/twilio/twilio.module';
     NodemailerModule,
     CloudinaryModule,
     TwilioModule,
+    UserModule,
   ],
   providers: [
     PrismaService,

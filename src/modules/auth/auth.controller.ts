@@ -16,11 +16,7 @@ import {
 } from './auth.interfaces';
 import { Serialize } from '../../common/decorators/serialize.decorator';
 import { LoginRequestDto, LoginResponseDto } from './dto/login.dto';
-import {
-  CustomerSignupDto,
-  DriverSignupDto,
-  SignupDto,
-} from './dto/signup.dto';
+import { CustomerSignupDto, DriverSignupDto } from './dto/signup.dto';
 import { UploadDriverFiles } from './decorators/upload-file.decorator';
 
 @Controller('v1/auth')
@@ -28,15 +24,16 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/customer/signup')
-  @Serialize(SignupDto)
-  async customerSignup(@Body() body: CustomerSignupDto): Promise<SignupDto> {
+  async customerSignup(
+    @Body() body: CustomerSignupDto,
+  ): Promise<SignupResponse> {
     const result = await this.authService.customerSignup(body);
     if (!result) {
       throw new InternalServerErrorException(
         'Error while signing up, please try again later.',
       );
     }
-    return { message: result };
+    return { status: 'success', message: result };
   }
 
   @Post('/customer/login')
@@ -47,7 +44,7 @@ export class AuthController {
   }
 
   @Get('/verify/customer-email/:token')
-  async verifyEmail(
+  async verifyCustomerEmail(
     @Param('token') token: string,
   ): Promise<VerifyEmailResponse> {
     const result = await this.authService.verifyCustomerEmail(token);
@@ -55,7 +52,7 @@ export class AuthController {
   }
 
   @Get('/verify/customer-mobile/:token')
-  async verifyMobile(
+  async verifyCustomerMobile(
     @Param('token') token: string,
   ): Promise<VerifyMobileResponse> {
     const result = await this.authService.verifyCustomerMobile(token);
@@ -75,6 +72,29 @@ export class AuthController {
       nationalId,
       driveLicense,
     );
+    return { status: 'success', message: result };
+  }
+
+  @Post('/driver/login')
+  @Serialize(LoginResponseDto)
+  async driverLogin(@Body() code: LoginRequestDto): Promise<LoginResponse> {
+    const result = await this.authService.driverLogin(code);
+    return result;
+  }
+
+  @Get('/verify/driver-email/:token')
+  async verifyDriverEmail(
+    @Param('token') token: string,
+  ): Promise<VerifyEmailResponse> {
+    const result = await this.authService.verifyDriverEmail(token);
+    return { status: 'success', message: result };
+  }
+
+  @Get('/verify/driver-mobile/:token')
+  async verifyDriverMobile(
+    @Param('token') token: string,
+  ): Promise<VerifyMobileResponse> {
+    const result = await this.authService.verifyDriverMobile(token);
     return { status: 'success', message: result };
   }
 }
