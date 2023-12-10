@@ -55,7 +55,8 @@ export class AuthService {
       );
     }
     const payload: Payload = {
-      userId: customer?.id,
+      type: 'customer',
+      sub: { userId: customer?.id },
     };
     const accessToken = this.generateAccessToken(payload);
     return { ...(customer as SerializedUser), access_token: accessToken };
@@ -98,7 +99,7 @@ export class AuthService {
       driveLicense,
     });
     if (!driver) {
-      throw new BadRequestException(
+      throw new InternalServerErrorException(
         'Error while creating your account, please try again later!',
       );
     }
@@ -120,7 +121,7 @@ export class AuthService {
         'Your mobile number has not been verified yet, please verify your mobile number first',
       );
     }
-    const payload: Payload = { userId: driver?.id };
+    const payload: Payload = { type: 'driver', sub: { userId: driver?.id } };
     const accessToken = this.generateAccessToken(payload);
     return { ...(driver as SerializedUser), access_token: accessToken };
   }

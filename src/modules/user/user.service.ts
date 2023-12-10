@@ -32,6 +32,13 @@ export class UserService {
     private readonly twilioService: TwilioService,
   ) {}
 
+  public async findUserById(
+    type: string,
+    id: number,
+  ): Promise<Customer | Driver | Admin | null> {
+    return await this.prismaService[type].findUnique({ where: { id: id } });
+  }
+
   private async getUserByEmail(
     email: string,
   ): Promise<Customer | Driver | null> {
@@ -231,9 +238,22 @@ export class UserService {
     const driveLicense = await this.uploadToCloudinary(body.driveLicense);
     const driver = await this.prismaService.driver.create({
       data: {
-        ...body,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        email: body.email,
+        mobile: body.mobile,
+        password: body.password,
         NID: nationalId,
         driveLicense,
+      },
+    });
+    await this.prismaService.vehicle.create({
+      data: {
+        driverId: driver?.id,
+        plateNum: body.vehiclePlateNum,
+        color: body.vehicleColor,
+        model: body.vehicleModel,
+        year: Number(body.vehicleYear),
       },
     });
     await this.saveTokens(
